@@ -17,6 +17,12 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
+        val registeredEmail = intent.getStringExtra("EMAIL")
+
+        if (registeredEmail != null) {
+            binding.emailEditText.setText(registeredEmail)
+        }
+
         binding.loginButton.setOnClickListener {
 
             val email = binding.emailEditText.text.toString().trim()
@@ -33,6 +39,13 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
 
             finish()
+        }
+
+        binding.registerTextView.setOnClickListener {
+
+            val intent = Intent(this, RegisterActivity::class.java)
+
+            startActivity(intent)
         }
     }
 }
