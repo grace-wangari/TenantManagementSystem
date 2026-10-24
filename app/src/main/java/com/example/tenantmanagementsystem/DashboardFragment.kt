@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 // Generated from fragment_dashboard.xml (View Binding)
 import com.example.tenantmanagementsystem.databinding.FragmentDashboardBinding
 
@@ -39,6 +40,22 @@ class DashboardFragment : Fragment() {
 
         // totalRentTextView <- android:id="@+id/totalRentTextView"
         binding.totalRentTextView.text = "Total rent\nKSh %,.0f".format(totalRent)
+
+        // ADD TENANT: follow the arrow from Dashboard to Add Tenant in nav_graph.xml
+        binding.addTenantButton.setOnClickListener {
+
+            val action = DashboardFragmentDirections.actionDashboardFragmentToAddTenantFragment()
+
+            findNavController().navigate(action)
+        }
+
+        // VIEW TENANTS: follow the arrow from Dashboard to View Tenants
+        binding.viewTenantsButton.setOnClickListener {
+
+            val action = DashboardFragmentDirections.actionDashboardFragmentToViewTenantsFragment()
+
+            findNavController().navigate(action)
+        }
     }
 
     // The view is destroyed: let go of it
