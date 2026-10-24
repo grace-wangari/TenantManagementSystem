@@ -1,94 +1,58 @@
 package com.example.tenantmanagementsystem
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.tenantmanagementsystem.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    // The most recently saved tenant. Lost on rotation unless we save it
-    private var lastTenant: Tenant? = null
+    // The "driver" that switches Fragments inside the NavHost
+    private lateinit var navController: NavController
+
+    // Tells the App Bar which screens are top-level (no back arrow)
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("TENANT_LIFECYCLE", "MainActivity: onCreate")
 
-        // Create the views from activity_main.xml and show them
+        // Create the views from activity_main.xml (Toolbar + NavHost)
         binding = ActivityMainBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
 
-        // ---- RESTORE STATE (only after a rotation) ----
-        // savedInstanceState is the Bundle we filled in onSaveInstanceState().
-        // It is null the FIRST time the Activity opens (nothing saved yet).
-        if (savedInstanceState != null) {
+        // 1. Use our Toolbar as the App Bar
+        //    toolbar <- android:id="@+id/toolbar" in activity_main.xml
+        setSupportActionBar(binding.toolbar)
 
-            // Read each value back using the SAME keys we saved with
-            val name = savedInstanceState.getString("tenant_name")
-            val phone = savedInstanceState.getString("tenant_phone")
-            val rent = savedInstanceState.getString("tenant_rent")
+        // 2. Get the NavController from the NavHost
+        //    nav_host_fragment <- android:id="@+id/nav_host_fragment"
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
-            // Only rebuild the tenant if all three were saved
-            if (name != null && phone != null && rent != null) {
-                val tenant = Tenant(name, phone, rent)
+        navController = navHostFragment.navController
 
-                // Put the tenant back in BOTH places it lived before rotating:
-                lastTenant = tenant          // so CALL TENANT works again
-                binding.tenant = tenant      // so the summary appears again (Data Binding)
-            }
-        }
+        // 3. Connect the App Bar to navigation:
+        //    the title comes from each destination's android:label
+        appBarConfiguration = AppBarConfiguration(navController.graph)
 
-        // ---- SAVE button ----
-        binding.saveButton.setOnClickListener {
-            val name = binding.tenantNameEditText.text.toString()
-            val phone = binding.phoneEditText.text.toString()
-            val rent = binding.rentEditText.text.toString()
-
-            val tenant = Tenant(name, phone, rent)
-            binding.tenant = tenant     // Data Binding shows the summary
-            lastTenant = tenant         // remember it for CALL TENANT
-        }
-
-        // ---- CALL TENANT button (implicit Intent) ----
-        binding.callButton.setOnClickListener {
-            val tenant = lastTenant
-
-            if (tenant == null) {
-                Toast.makeText(this, "Save a tenant first", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${tenant.phone}"))
-            startActivity(intent)
-        }
+        setupActionBarWithNavController(navController, appBarConfiguration)
     }
 
-    // ---- SAVE STATE (just before the Activity is destroyed) ----
-    // Android calls this just before destroying the Activity
-    // (for example, when the phone rotates).
-    // outState is the Bundle that Android keeps for us.
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        Log.d("TENANT_LIFECYCLE", "MainActivity: onSaveInstanceState")
-
-        // Copy into a val so Kotlin knows it can't change after the check
-        val tenant = lastTenant
-
-        if (tenant != null) {
-            // Store each field under its own KEY.
-            // onCreate() reads them back with the SAME keys.
-            outState.putString("tenant_name", tenant.name)
-            outState.putString("tenant_phone", tenant.phone)
-            outState.putString("tenant_rent", tenant.rent)
-        }
+    // 4. Make the App Bar's back arrow work
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    // ---- LIFECYCLE METHODS ----
+    // ---- LIFECYCLE LOGS ----
     override fun onStart() {
         super.onStart()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onStart")
